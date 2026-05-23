@@ -23,6 +23,8 @@ A full production application built on top of this research. No setup required �
 **Disease Progression Simulator**
 Move a severity slider from 0.0 to 1.0 and watch the generated chest X-ray update in real time. Four GAN architectures available for selection. Labels map to clinical stages: Normal → Lung Opacity → Viral Pneumonia → COVID-19.
 
+![Disease Progression — same noise vector, severity 0.0 to 1.0](results/severity_progression.png)
+
 **Diagnostic Challenge**
 The system generates an X-ray at a random hidden severity. You classify it as Normal / Lung Opacity / Viral Pneumonia / COVID-19. A ResNet18 classifier (95.28% accuracy) evaluates the same image independently. Results show your answer, the AI answer, and the actual severity used — designed for medical students practicing chest X-ray interpretation.
 
@@ -166,9 +168,19 @@ The frozen WGAN-GP generator serves as teacher. For each training batch, the sam
 | Spectral DCGAN | 156.22 | 0.996 | 0.947 |
 | KD Generator | 143.17 | **0.984** | **0.963** |
 
+![Four-Model Comparison — FID, Spearman r, SSIM](results/final_four_model_comparison.png)
+
+### Generated Samples at Epoch 50
+
+| KD Generator (Best Overall) | DCGAN | Spectral DCGAN | WGAN-GP |
+|:---:|:---:|:---:|:---:|
+| ![KD](results/kd_epoch_050.png) | ![DCGAN](results/dcgan_epoch_050.png) | ![Spectral](results/spectral_dcgan_epoch_050.png) | ![WGAN-GP](results/wgan_epoch_050.png) |
+
 ### Finding 1: FID and Spearman r Are Orthogonal
 
 DCGAN achieves the best FID (142.14) but the weakest severity encoding (Spearman r 0.598). WGAN-GP achieves stronger severity encoding (0.748) at the cost of FID (237.39). No single baseline model dominates on both metrics simultaneously. This confirms that visual quality and semantic conditioning are orthogonal properties requiring separate measurement.
+
+![Severity Disentanglement Analysis — Spearman r distribution and feature space trajectories](results/severity_disentanglement.png)
 
 ### Finding 2: Spectral Normalization Dramatically Improves Severity Encoding
 
@@ -177,6 +189,8 @@ Adding spectral normalization to the discriminator improved Spearman r from 0.59
 ### Finding 3: KD Resolves the Quality-Semantics Tradeoff
 
 The KD Generator achieves near-identical FID to DCGAN (143.17 vs 142.14, less than 1% difference) while improving Spearman r from 0.598 to 0.984 (65% improvement) and SSIM from 0.905 to 0.963. Knowledge distillation from WGAN-GP successfully transfers semantic conditioning quality to the student without sacrificing visual fidelity. The KD Generator is the best overall model across the three-metric suite.
+
+![Temporal Consistency — SSIM distribution, box plots, and normalized all-metric comparison](results/temporal_consistency.png)
 
 ### Downstream Classification
 
@@ -189,6 +203,8 @@ ResNet18 classifier trained under three augmentation conditions:
 | Real + DCGAN synthetic | **95.34%** | **1.00** |
 
 DCGAN augmentation achieved perfect recall on Viral Pneumonia, the rarest class (1,345 training images, 208 test cases). Zero false negatives. For rare disease detection in imbalanced datasets, targeted GAN augmentation eliminates misses entirely even when overall accuracy improvement is marginal.
+
+![Downstream Classification — training curves and final test accuracy comparison](results/downstream_comparison.png)
 
 ---
 
