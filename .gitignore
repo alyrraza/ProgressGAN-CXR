@@ -1,0 +1,52 @@
+# ── Model weights (hosted on Hugging Face Hub, too large for git) ────────────
+models/*.pth
+*.pth
+
+# ── Python ───────────────────────────────────────────────────────────────────
+__pycache__/
+*.py[cod]
+*.so
+venv/
+.venv/
+env/
+.env
+*.egg-info/
+build/
+dist/
+.pytest_cache/
+.coverage
+htmlcov/
+.mypy_cache/
+
+# ── ONNX / model cache ────────────────────────────────────────────────────────
+*.onnx
+.cache/
+
+# ── Node / Frontend ──────────────────────────────────────────────────────────
+node_modules/
+frontend/dist/
+frontend/.env.local
+frontend/.env.production
+frontend/.env
+
+# ── Secrets ──────────────────────────────────────────────────────────────────
+.env
+*.pem
+*.key
+
+# ── Docker ───────────────────────────────────────────────────────────────────
+.dockerignore
+
+# ── OS ───────────────────────────────────────────────────────────────────────
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── IDE ──────────────────────────────────────────────────────────────────────
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── Jupyter ──────────────────────────────────────────────────────────────────
+.ipynb_checkpoints/
