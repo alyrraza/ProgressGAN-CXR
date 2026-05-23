@@ -6,6 +6,35 @@
 [![PyTorch](https://img.shields.io/badge/PyTorch-2.10-red.svg)](https://pytorch.org)
 [![Dataset](https://img.shields.io/badge/Dataset-COVID--19%20Radiography-green.svg)](https://www.kaggle.com/datasets/tawsifurrahman/covid19-radiography-database)
 [![Platform](https://img.shields.io/badge/Platform-Kaggle%20T4x2-orange.svg)](https://kaggle.com)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-Vercel-black.svg)](https://progressgan-cxr.vercel.app)
+[![Backend](https://img.shields.io/badge/Backend-HF%20Spaces-yellow.svg)](https://huggingface.co/spaces/alyrraza/progressgan-cxr-backend)
+[![Models](https://img.shields.io/badge/Models-Hugging%20Face-orange.svg)](https://huggingface.co/alyrraza/progressgan-cxr)
+
+---
+
+## Try It Live
+
+**[https://progressgan-cxr.vercel.app](https://progressgan-cxr.vercel.app)**
+
+A full production application built on top of this research. No setup required — runs entirely in the browser backed by a live FastAPI inference server.
+
+### Features
+
+**Disease Progression Simulator**
+Move a severity slider from 0.0 to 1.0 and watch the generated chest X-ray update in real time. Four GAN architectures available for selection. Labels map to clinical stages: Normal → Lung Opacity → Viral Pneumonia → COVID-19.
+
+**Diagnostic Challenge**
+The system generates an X-ray at a random hidden severity. You classify it as Normal / Lung Opacity / Viral Pneumonia / COVID-19. A ResNet18 classifier (95.28% accuracy) evaluates the same image independently. Results show your answer, the AI answer, and the actual severity used — designed for medical students practicing chest X-ray interpretation.
+
+**Model Comparison**
+The same noise vector and severity score are fed simultaneously to all four trained generators. Four images render side by side with FID / Spearman r / SSIM scores below each, making the quality-semantics tradeoff visually concrete.
+
+**Research Dashboard**
+Evaluation plots and findings from this paper rendered interactively with explanations.
+
+### First Request Latency
+
+The backend runs on Hugging Face Spaces free tier and hibernates after inactivity. The first request after a cold start streams the model weights (~96–288 MB) from the HF Hub into memory, which takes 30–60 seconds. Subsequent requests are fast (model cached in memory for the session).
 
 ---
 
@@ -184,6 +213,71 @@ KD from a semantically strong teacher achieves best-of-both-worlds: FID 143.17 (
 **5. Rare Class Augmentation**
 
 Targeted DCGAN augmentation for the rarest class (Viral Pneumonia, 6.4% of training data) achieved perfect recall (1.00) on the test set, eliminating all false negatives. This supports class-targeted rather than uniform synthetic augmentation strategies.
+
+---
+
+## Production Stack
+
+This research is deployed as a full-stack medical AI application.
+
+```
+User Browser
+     │
+React + TypeScript + Tailwind (Vercel)
+     │  https://progressgan-cxr.vercel.app
+     │
+FastAPI Inference Server (Hugging Face Spaces — Docker)
+     │  https://alyrraza-progressgan-cxr-backend.hf.space
+     │
+     ├── PyTorch generators (lazy-loaded from HF Hub on first request)
+     ├── ResNet18 classifier (lazy-loaded from HF Hub on first request)
+     └── Prometheus metrics endpoint (/metrics)
+
+Model Weights (Hugging Face Hub)
+     https://huggingface.co/alyrraza/progressgan-cxr
+     621 MB total — 4 generators + 1 classifier
+```
+
+| Layer | Technology | Hosting |
+|-------|-----------|---------|
+| Frontend | React 18, TypeScript, Vite, Tailwind CSS | Vercel |
+| Backend | FastAPI, PyTorch, Prometheus | HF Spaces (Docker) |
+| Models | PyTorch `.pth` checkpoints | Hugging Face Hub |
+| CI/CD | GitHub Actions | GitHub |
+| Containerization | Docker | — |
+
+### API Endpoints
+
+| Endpoint | Method | Description |
+|----------|--------|-------------|
+| `/` | GET | API info and available endpoints |
+| `/health` | GET | Server status and cached model list |
+| `/generate` | POST | Generate X-ray from severity + model selection |
+| `/classify` | POST | Classify uploaded X-ray image (4 classes) |
+| `/compare` | POST | Run all 4 generators with same seed |
+| `/challenge` | POST | Start a blind diagnostic challenge |
+| `/challenge/{id}/answer` | POST | Submit answer and reveal ground truth |
+| `/docs` | GET | Interactive Swagger UI |
+| `/metrics` | GET | Prometheus metrics scrape endpoint |
+
+### Running Locally
+
+```bash
+git clone https://github.com/alyrraza/ProgressGAN-CXR
+cd ProgressGAN-CXR/backend
+
+# Set LOCAL_MODELS=true to load from local models/ folder instead of HF Hub
+LOCAL_MODELS=true uvicorn main:app --reload --port 8000
+```
+
+Requires Python 3.11+. Install dependencies: `pip install -r requirements.txt`
+
+Frontend:
+```bash
+cd frontend
+npm install
+VITE_API_URL=http://localhost:8000 npm run dev
+```
 
 ---
 
